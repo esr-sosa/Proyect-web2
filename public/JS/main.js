@@ -127,6 +127,7 @@ function obtenerDatosDeObjetos(objetsID) {
             console.error("Error al traducir los datos", error);
           });
       })
+      
       .catch((error) => {
         console.error("Error al traer los datos del objeto", error);
       });
