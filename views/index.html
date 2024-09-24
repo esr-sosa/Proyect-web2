@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="CSS/styles.css" />
+    <link rel="stylesheet" href="/CSS/styles.css" />
   </head>
 
   <body class="bg-dark text-light">
@@ -47,12 +47,15 @@
         <div class="col-md-2">
           <button type="submit" class="btn btn-success w-100">Buscar</button>
         </div>
+        <div class="col-md-2">
+          <button id="btn-traducir" class="btn btn-info w-100">Traducir</button>
+        </div>
       </form>
       <div id="resultados" class="row g-4 mt-4"></div>
       <div id="pagination" class="mt-4 d-flex justify-content-center"></div>
     </div>
 
+    <script type="module" src="JS/main.js"></script>
 
-    <script src="JS/main.js"></script>
   </body>
 </html>
