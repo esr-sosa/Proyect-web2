@@ -4,7 +4,6 @@ import { fileURLToPath } from "url";
 //importando el archivo api,js
 import apiRoutes from "./routes/api.js";
 
-
 const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
