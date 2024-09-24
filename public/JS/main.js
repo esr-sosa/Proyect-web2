@@ -1,6 +1,6 @@
 console.log("main.js cargado");
+//import translate from "node-google-translate-skidz";
 let traducir = false;
-import translate from "node-google-translate-skidz";
 const form = document.getElementById("form");
 const ubicacion = document.getElementById("ubicacion");
 const busqueda = document.getElementById("busqueda");
@@ -100,7 +100,7 @@ function obtenerDatosDeObjetos(objetsID) {
               card.classList.add("col-lg-3", "col-md-4", "col-sm-6"); // 4 por fila en pantallas grandes
 
               // Si no hay imagen, usa la imagen predeterminada
-              const imagen = objeto.primaryImage || "images/images.png";
+              const imagen = objeto.primaryImage || "./images/images.png";
 
               card.innerHTML = `
                         <div class="card h-100">
