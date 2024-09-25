@@ -1,8 +1,12 @@
 console.log("main.js cargado");
-//import translate from "node-google-translate-skidz";
 let traducir = false;
+let paginaActual = 1;
+const itemPorPagina = 20;
+let totalobjetos = 0;
+let searchUrl = "";
+let resultadosData = [];
+
 const form = document.getElementById("form");
-const ubicacion = document.getElementById("ubicacion");
 const busqueda = document.getElementById("busqueda");
 const departamentSelect = document.getElementById("departament");
 const URL = "https://collectionapi.metmuseum.org/public/collection/v1/";
@@ -11,17 +15,15 @@ function llenarSelect() {
   fetch(URL + "departments")
     .then((res) => res.json())
     .then((data) => {
-      // Creo la opcion TODOS para que muestre todos los departamentos
       const todos = document.createElement("option");
       todos.setAttribute("value", 0);
       todos.text = "Todos los departamentos";
       departamentSelect.appendChild(todos);
+
       data.departments.forEach((department) => {
-        // Creo la opción para el select
         const option = document.createElement("option");
         option.value = department.departmentId;
         option.text = department.displayName;
-        // Agrego la opción al select
         departamentSelect.appendChild(option);
       });
     })
@@ -29,19 +31,19 @@ function llenarSelect() {
       console.error("Error al obtener los departamentos:", error);
     });
 }
-llenarSelect(); //Funciona flama
 
-// buscar por nombre, ubicacion y departamento
+llenarSelect();
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   const busquedaValue = busqueda.value.trim();
-  const departamentvalue = departamentSelect.value; //devuelve lam posicion de el select
-  //Creo la URl que va a buscar solo los resultados que solo tengan imagenes
-  let searchUrl = `${URL}search?hasImages=true&q=${busquedaValue}`;
-  if (departamentvalue !== "0") {
-    searchUrl += `&departmentId=${departamentvalue}`;
+  const departamentValue = departamentSelect.value;
+
+  searchUrl = `${URL}search?hasImages=true&q=${busquedaValue}`;
+  if (departamentValue !== "0") {
+    searchUrl += `&departmentId=${departamentValue}`;
   }
-  console.log(searchUrl);
+  paginaActual = 1;
   obtenerDatos(searchUrl);
 });
 
@@ -49,6 +51,7 @@ document.getElementById("btn-traducir").addEventListener("click", () => {
   traducir = !traducir;
   const btnTraducir = document.getElementById("btn-traducir");
   btnTraducir.innerText = traducir ? "No traducir" : "Traducir";
+  mostrarResultados();
 });
 
 function obtenerDatos(searchUrl) {
@@ -56,80 +59,136 @@ function obtenerDatos(searchUrl) {
     .then((res) => res.json())
     .then((data) => {
       if (data.total === 0) {
-        console.log("No se encontraron resultados", data);
+        console.log("No se encontraron resultados");
+        totalobjetos = 0;
       } else {
-        console.log(`Se encontraron ${data.total} resultados`);
-        const objetsID = data.objectIDs.slice(0, 20);
-        obtenerDatosDeObjetos(objetsID);
+        totalobjetos = data.total;
+        const objectIDs = data.objectIDs.slice(
+          (paginaActual - 1) * itemPorPagina,
+          paginaActual * itemPorPagina
+        );
+        resultadosData = [];
+        obtenerDatosDeObjetos(objectIDs);
+        actualizarPaginacion();
       }
     })
     .catch((error) => {
-      console.error("Error al traer los datos ", error);
+      console.error("Error al traer los datos", error);
     });
 }
 
-function obtenerDatosDeObjetos(objetsID) {
+function obtenerDatosDeObjetos(objectIDs) {
   const resultados = document.getElementById("resultados");
-  resultados.innerHTML = ""; // Limpiar resultados anteriores
+  resultados.innerHTML = "";
 
-  objetsID.forEach((id) => {
+  const promises = objectIDs.map((id) => {
     const url = `${URL}objects/${id}`;
-    fetch(url)
+    return fetch(url)
       .then((res) => res.json())
       .then((objeto) => {
-        const title = objeto.title || "Sin título";
-        const culture = objeto.culture || "Sin cultura";
-        const dynasty = objeto.dynasty || "Sin dinastía";
+        resultadosData.push({
+          id,
+          title: objeto.title || "Sin título",
+          culture: objeto.culture || "Sin cultura",
+          dynasty: objeto.dynasty || "Sin dinastía",
+          primaryImage: objeto.primaryImage || "./IMAGES/images.png",
+        });
+      });
+  });
 
-        const traduccionPromises = traducir
-          ? Promise.all([
-              translate({ text: title, target: "es" }),
-              translate({ text: culture, target: "es" }),
-              translate({ text: dynasty, target: "es" }),
-            ])
-          : Promise.resolve([
-              { translation: title },
-              { translation: culture },
-              { translation: dynasty },
-            ]);
+  Promise.all(promises)
+    .then(() => {
+      mostrarResultados();
+    })
+    .catch((error) => {
+      console.error("Error al traer los datos del objeto", error);
+    });
+}
 
-        traduccionPromises
-          .then(
-            ([titleTranslation, cultureTranslation, dynastyTranslation]) => {
-              const card = document.createElement("div");
-              card.classList.add("col-lg-3", "col-md-4", "col-sm-6"); // 4 por fila en pantallas grandes
+function mostrarResultados() {
+  const resultados = document.getElementById("resultados");
+  resultados.innerHTML = "";
 
-              // Si no hay imagen, usa la imagen predeterminada
-              const imagen = objeto.primaryImage || "./images/images.png";
+  resultadosData.forEach((objeto) => {
+    const card = document.createElement("div");
+    card.classList.add("col-lg-3", "col-md-4", "col-sm-6");
 
-              card.innerHTML = `
-                        <div class="card h-100">
-                          <img src="${imagen}" class="card-img-top" alt="${
-                titleTranslation.translation || "Imagen no disponible"
-              }">
-                          <div class="card-body">
-                            <h5 class="card-title">${
-                              titleTranslation.translation || "Sin título"
-                            }</h5>
-                            <p class="card-text">${
-                              cultureTranslation.translation || "Sin cultura"
-                            }</p>
-                            <p class="card-text">${
-                              dynastyTranslation.translation || "Sin dinastía"
-                            }</p>
-                          </div>
-                        </div>
-                      `;
-              resultados.appendChild(card);
-            }
-          )
-          .catch((error) => {
-            console.error("Error al traducir los datos", error);
-          });
+    const imagen = objeto.primaryImage;
+
+    const titleText = traducir ? translateText(objeto.title) : objeto.title;
+    const cultureText = traducir
+      ? translateText(objeto.culture)
+      : objeto.culture;
+    const dynastyText = traducir
+      ? translateText(objeto.dynasty)
+      : objeto.dynasty;
+
+    Promise.all([titleText, cultureText, dynastyText])
+      .then(([titleTranslation, cultureTranslation, dynastyTranslation]) => {
+        card.innerHTML = `
+          <div class="card h-100">
+            <img src="${imagen}" class="card-img-top" alt="${titleTranslation}">
+            <div class="card-body">
+              <h5 class="card-title">${titleTranslation}</h5>
+              <p class="card-text">${cultureTranslation}</p>
+              <p class="card-text">${dynastyTranslation}</p>
+            </div>
+          </div>
+        `;
+        resultados.appendChild(card);
       })
-      
       .catch((error) => {
-        console.error("Error al traer los datos del objeto", error);
+        console.error("Error al traducir los datos", error);
       });
   });
 }
+
+function actualizarPaginacion() {
+  document.getElementById("pagina-actual").innerHTML = paginaActual;
+  document.getElementById("btn-anterior").disabled = paginaActual === 1;
+  document.getElementById("btn-siguiente").disabled =
+    paginaActual * itemPorPagina >= totalobjetos;
+
+  // Calcular el total de páginas
+  const totalPaginas = Math.ceil(totalobjetos / itemPorPagina);
+  document.getElementById("total-paginas").innerHTML = totalPaginas; // Muestra el total de páginas
+}
+
+function translateText(text) {
+  return fetch("/translate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      text: text,
+      source: "en",
+      target: "es",
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Error en la traducción");
+      }
+      return response.json();
+    })
+    .then((data) => data.translation)
+    .catch((error) => {
+      console.error("Error al traducir el texto:", error);
+      return text;
+    });
+}
+
+document.getElementById("btn-anterior").addEventListener("click", () => {
+  if (paginaActual > 1) {
+    paginaActual--;
+    obtenerDatos(searchUrl);
+  }
+});
+
+document.getElementById("btn-siguiente").addEventListener("click", () => {
+  if (paginaActual * itemPorPagina < totalobjetos) {
+    paginaActual++;
+    obtenerDatos(searchUrl);
+  }
+});

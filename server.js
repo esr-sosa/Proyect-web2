@@ -1,22 +1,34 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-//importando el archivo api,js
-import apiRoutes from "./routes/api.js";
+import { createRequire } from "module"; 
+
+const require = createRequire(import.meta.url);
+const translate = require("node-google-translate-skidz");
 
 const app = express();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-//para traer archivos estaticos
-app.use(express.static(path.join(__dirname, "public")));
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public"), { extensions: ["jpg", "png", "gif"] }));
+
+app.post("/translate", (req, res) => {
+  const { text, source, target } = req.body;
+
+  translate({ text, source, target }, function(result) {
+    if (result && result.translation) {
+      res.json({ translation: result.translation });
+    } else {
+      res.status(500).json({ error: "Translation error" });
+    }
+  });
+});
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "index.html"));
 });
-
-app.use("/api", apiRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

@@ -2,7 +2,6 @@
   "name": "proyect-web2",
   "version": "1.0.0",
   "main": "server.js",
-  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
@@ -11,9 +10,17 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "type": "module",
   "dependencies": {
+    "@google-cloud/translate": "^8.5.0",
+    "@vitalets/google-translate-api": "^9.2.0",
     "express": "^4.21.0",
     "node-fetch": "^3.3.2",
-    "node-google-translate-skidz": "^1.1.1"
+    "node-google-translate-skidz": "^1.1.2"
+  },
+  "devDependencies": {
+    "eslint": "^9.11.1",
+    "webpack": "^5.95.0",
+    "webpack-cli": "^5.1.4"
   }
 }

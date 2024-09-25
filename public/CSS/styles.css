@@ -1,15 +1,26 @@
 body {
   font-family: 'Poppins', Arial, sans-serif;
+  background-image: url('../images/background.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+  background-color: black; 
+  height: 100vh;
+  margin: 0;
 }
 
 h1 {
+  color: black;
   text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 #resultados {
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(187, 187, 187, 0.7);
   padding: 20px;
   border-radius: 8px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .card {
@@ -32,7 +43,7 @@ h1 {
 }
 
 .loader-container p {
-  color: white;
+  color: rgb(0, 0, 0);
   font-size: 1.2rem;
   margin-top: 10px;
 }
@@ -44,13 +55,17 @@ h1 {
 }
 
 #pagination .btn {
-  margin: 0 5px;
+  padding: 10px 20px;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  border: none;
+  background-color: #007bff;
+  color: rgb(0, 0, 0);
   transition: background-color 0.3s, transform 0.3s;
 }
 
 #pagination .btn:hover {
-  background-color: #007bff;
-  color: white;
+  background-color: #0056b3;
   transform: scale(1.1);
 }
 
@@ -66,4 +81,8 @@ h1 {
   #pagination .btn {
     margin: 5px 0;
   }
+}
+
+.pagina-actual {
+  color: rgb(0, 0, 0);
 }
