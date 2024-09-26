@@ -41,14 +41,17 @@ form.addEventListener("submit", (event) => {
 
   searchUrl = `${URL}search?hasImages=true&q=${busquedaValue}`;
 
-  if (ubicacionValue !== "") {
-    searchUrl += `&geoLocation=${ubicacionValue}`;
+  if (ubicacionValue.trim() !== "") {
+    searchUrl += `&geoLocation!=${ubicacionValue.trim()}`;
   }
 
   if (departamentValue !== "0") {
     searchUrl += `&departmentId=${departamentValue}`;
   }
+  
 
+  console.log("su busqueda fue " + busquedaValue+" "+ubicacionValue+" "+departamentValue);
+  console.log(searchUrl);
   paginaActual = 1;
   obtenerDatos(searchUrl);
 });
@@ -65,11 +68,12 @@ function obtenerDatos(searchUrl) {
     .then((res) => res.json())
     .then((data) => {
       if (data.total === 0) {
-        
         console.log("No se encontraron resultados, URL    " + searchUrl);
         resultados.innerHTML = `<h2>No se encontraron resultados</h2>`;
+        console.log(data);
         totalobjetos = 0;
       } else {
+        console.log(data);
         totalobjetos = data.total;
         const objectIDs = data.objectIDs.slice(
           (paginaActual - 1) * itemPorPagina,
@@ -99,7 +103,9 @@ function obtenerDatosDeObjetos(objectIDs) {
           title: objeto.title || "Sin título",
           culture: objeto.culture || "Sin cultura",
           dynasty: objeto.dynasty || "Sin dinastía",
+          location: objeto.city || objeto.country || "Sin ubicación",
           primaryImage: objeto.primaryImage || "./IMAGES/images.png",
+          objectDate: objeto.objectDate || "Fecha desconocida", // La fecha de publicación
         });
       });
   });
@@ -130,21 +136,33 @@ function mostrarResultados() {
     const dynastyText = traducir
       ? translateText(objeto.dynasty)
       : objeto.dynasty;
+    const locationText = traducir
+      ? translateText(objeto.location)
+      : objeto.location; // Traduce o muestra la ubicación
 
-    Promise.all([titleText, cultureText, dynastyText])
-      .then(([titleTranslation, cultureTranslation, dynastyTranslation]) => {
-        card.innerHTML = `
-          <div class="card h-100">
-            <img src="${imagen}" class="card-img-top" alt="${titleTranslation}">
-            <div class="card-body">
-              <h5 class="card-title">${titleTranslation}</h5>
-              <p class="card-text">${cultureTranslation}</p>
-              <p class="card-text">${dynastyTranslation}</p>
-            </div>
-          </div>
-        `;
-        resultados.appendChild(card);
-      })
+    Promise.all([titleText, cultureText, dynastyText, locationText])
+      .then(
+        ([
+          titleTranslation,
+          cultureTranslation,
+          dynastyTranslation,
+          locationTranslation,
+        ]) => {
+          card.innerHTML = `
+  <div class="card h-100">
+    <img src="${imagen}" class="card-img-top" alt="${titleTranslation}" title="Fecha de publicación: ${objeto.objectDate}">
+    <div class="card-body">
+      <h5 class="card-title">${titleTranslation}</h5>
+      <p class="card-text">Cultura: ${cultureTranslation}</p>
+      <p class="card-text">Dinastía: ${dynastyTranslation}</p>
+      <p class="card-text">Ubicación: ${locationTranslation}</p>
+    </div>
+  </div>
+`;
+
+          resultados.appendChild(card);
+        }
+      )
       .catch((error) => {
         console.error("Error al traducir los datos", error);
       });
