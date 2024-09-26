@@ -19,7 +19,6 @@ function llenarSelect() {
       todos.setAttribute("value", 0);
       todos.text = "Todos los departamentos";
       departamentSelect.appendChild(todos);
-
       data.departments.forEach((department) => {
         const option = document.createElement("option");
         option.value = department.departmentId;
@@ -37,12 +36,19 @@ llenarSelect();
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   const busquedaValue = busqueda.value.trim();
+  const ubicacionValue = document.getElementById("ubicacion").value.trim();
   const departamentValue = departamentSelect.value;
 
   searchUrl = `${URL}search?hasImages=true&q=${busquedaValue}`;
+
+  if (ubicacionValue !== "") {
+    searchUrl += `&geoLocation=${ubicacionValue}`;
+  }
+
   if (departamentValue !== "0") {
     searchUrl += `&departmentId=${departamentValue}`;
   }
+
   paginaActual = 1;
   obtenerDatos(searchUrl);
 });
@@ -59,7 +65,9 @@ function obtenerDatos(searchUrl) {
     .then((res) => res.json())
     .then((data) => {
       if (data.total === 0) {
-        console.log("No se encontraron resultados");
+        
+        console.log("No se encontraron resultados, URL    " + searchUrl);
+        resultados.innerHTML = `<h2>No se encontraron resultados</h2>`;
         totalobjetos = 0;
       } else {
         totalobjetos = data.total;
